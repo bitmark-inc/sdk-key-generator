@@ -17,23 +17,26 @@ import (
 
 var (
 	randSource = rand.Reader
+	filename   string
 )
 
 func main() {
-	var cmdGenerateKey = &cobra.Command{
-		Use:   "generate [file.pem]",
+	cmdGenerateKey := &cobra.Command{
+		Use:   "generate",
 		Short: "generate client id and client secret",
 		Long:  "generate certificate, allow server to issue sdk token to use with BitmarkSDK",
 		Run:   generateClientKeys,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 	}
+	cmdGenerateKey.Flags().StringVarP(&filename, "file", "f", "key.pem", "client certificate file")
 
-	var cmdIssueSDKToken = &cobra.Command{
-		Use:   "issuetoken [file.pem] [account]",
+	cmdIssueSDKToken := &cobra.Command{
+		Use:   "issue [account]",
 		Short: "issue new jwt token using generated pem file with an account",
 		Run:   issueSDKToken,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 	}
+	cmdIssueSDKToken.Flags().StringVarP(&filename, "file", "f", "key.pem", "client certificate file")
 
 	var rootCmd = &cobra.Command{}
 	rootCmd.AddCommand(cmdGenerateKey, cmdIssueSDKToken)
@@ -44,8 +47,7 @@ func generateClientKeys(cmd *cobra.Command, args []string) {
 	key, err := rsa.GenerateKey(randSource, 2048)
 	checkError(err)
 
-	fileName := args[0]
-	outFile, err := os.Create(fileName)
+	outFile, err := os.Create(filename)
 	checkError(err)
 	defer outFile.Close()
 
@@ -60,12 +62,11 @@ func generateClientKeys(cmd *cobra.Command, args []string) {
 	pubkey := x509.MarshalPKCS1PublicKey(&key.PublicKey)
 	pubkeyBase64 := base64.StdEncoding.EncodeToString(pubkey)
 	fmt.Println("Client ID: ", pubkeyBase64)
-	fmt.Println("Saved client secret to: " + fileName)
+	fmt.Println("Saved client secret to: " + filename)
 }
 
 func issueSDKToken(cmd *cobra.Command, args []string) {
-	filename := args[0]
-	account := args[1]
+	account := args[0]
 
 	jwtSecretByte, err := ioutil.ReadFile(filename)
 	checkError(err)
