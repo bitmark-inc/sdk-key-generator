@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -68,16 +69,20 @@ func generateClientKeys(cmd *cobra.Command, args []string) {
 func issueSDKToken(cmd *cobra.Command, args []string) {
 	account := args[0]
 
-	jwtSecretByte, err := ioutil.ReadFile(filename)
+	jwtPemByte, err := ioutil.ReadFile(filename)
 	checkError(err)
 
-	jwtPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM(jwtSecretByte)
+	jwtPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM(jwtPemByte)
 	checkError(err)
 
+	pubkey := x509.MarshalPKCS1PublicKey(&jwtPrivateKey.PublicKey)
+	pubkeyMd5sum := md5.Sum(pubkey)
+	iss := base64.StdEncoding.EncodeToString(pubkeyMd5sum[:])
 	now := time.Unix(0, time.Now().UnixNano())
 	exp := now.Add(1 * time.Hour)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": iss,
 		"sub": account,
 		"exp": exp.Unix(),
 		"iat": now.Unix(),
