@@ -11,7 +11,7 @@ go install
 ```
 
 ## Usage
-### Generate new sdk token:
+### Generate client ID and Certificate:
 Generate a Client ID and Client Certificate.  
 Example:
 ```bash
