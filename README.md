@@ -18,7 +18,7 @@ Example:
 sdk-key-generator generate --file key.pem
 ```
 After running this, it will generate `key.pem` as Client Certificate file and a `Client ID`.  
-Use the Client Certificate file as input of authentication server to issue new Bitmark SDK token.  
+The Client Certificate file is required to generate Bitmark SDK tokens for your users, please refer to [Bitmark SDK document](https://sdk-docs.bitmark.com) for example usage.  
 Use the generated Client ID to submit to Bitmark Inc in order to issue and use Bitmark SDK token with Bitmark System.
 
 ### Test issuing new sdk token:
